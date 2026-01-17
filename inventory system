@@ -1,0 +1,201 @@
+#include <stdio.h>
+/*SCS3/2607/2025
+SCS3/149945/2025
+SCS3/150909/2025
+SCS3/150195/2025*/
+
+struct Item {
+    int id;
+    char name[50];
+    int quantity;
+    float price;
+};
+
+
+void addItem();
+void viewItems();
+void updateItem();
+void deleteItem();
+
+int main() {
+    int choice;
+
+    do {
+        printf("\n=== Inventory Management System ===\n");
+        printf("1. Add Item\n");
+        printf("2. View Items\n");
+        printf("3. Update Item\n");
+        printf("4. Delete Item\n");
+        printf("0. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                addItem();
+                break;
+            case 2:
+                viewItems();
+                break;
+            case 3:
+                updateItem();
+                break;
+            case 4:
+                deleteItem();
+                break;
+            case 0:
+                printf("Exiting program...\n");
+                break;
+            default:
+                printf("Invalid choice!\n");
+        }
+    } while (choice != 0);
+
+    return 0;
+}
+
+void addItem() {
+    FILE *file = fopen("inventory.txt", "a");
+    struct Item item;
+
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    printf("Enter item ID: ");
+    scanf("%d", &item.id);
+
+    printf("Enter item name: ");
+    scanf("%s", item.name);
+
+    printf("Enter quantity: ");
+    scanf("%d", &item.quantity);
+
+    printf("Enter price: ");
+    scanf("%f", &item.price);
+
+    fprintf(file, "%d %s %d %.2f\n",
+            item.id, item.name, item.quantity, item.price);
+
+    fclose(file);
+    printf("Item added successfully!\n");
+}
+
+void viewItems() {
+    FILE *file = fopen("inventory.txt", "r");
+    struct Item item;
+    int isEmpty = 1;
+
+    if (file == NULL) {
+        printf("No inventory file found.\n");
+        return;
+    }
+
+    printf("\n--- Inventory List ---\n");
+    printf("ID\tName\tQuantity\tPrice\n");
+    printf("------------------------------------\n");
+
+    while (fscanf(file, "%d %s %d %f",
+                  &item.id, item.name,
+                  &item.quantity, &item.price) != EOF) {
+
+        printf("%d\t%s\t%d\t\t%.2f\n",
+               item.id, item.name,
+               item.quantity, item.price);
+        isEmpty = 0;
+    }
+
+    if (isEmpty) {
+        printf("Inventory is empty.\n");
+    }
+
+    fclose(file);
+}
+
+void updateItem() {
+    FILE *file = fopen("inventory.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+    struct Item item;
+    int id, found = 0;
+
+    if (file == NULL) {
+        printf("No inventory file found.\n");
+        return;
+    }
+
+    printf("Enter ID of item to update: ");
+    scanf("%d", &id);
+
+    while (fscanf(file, "%d %s %d %f",
+                  &item.id, item.name,
+                  &item.quantity, &item.price) != EOF) {
+
+        if (item.id == id) {
+            printf("Enter new name: ");
+            scanf("%s", item.name);
+
+            printf("Enter new quantity: ");
+            scanf("%d", &item.quantity);
+
+            printf("Enter new price: ");
+            scanf("%f", &item.price);
+
+            found = 1;
+        }
+
+        fprintf(temp, "%d %s %d %.2f\n",
+                item.id, item.name,
+                item.quantity, item.price);
+    }
+
+    fclose(file);
+    fclose(temp);
+
+    remove("inventory.txt");
+    rename("temp.txt", "inventory.txt");
+
+    if (found)
+        printf("Item updated successfully!\n");
+    else
+        printf("Item not found.\n");
+}
+
+void deleteItem() {
+    FILE *file = fopen("inventory.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+    struct Item item;
+    int id, found = 0;
+
+    if (file == NULL) {
+        printf("No inventory file found.\n");
+        return;
+    }
+
+    printf("Enter ID of item to delete: ");
+    scanf("%d", &id);
+
+    while (fscanf(file, "%d %s %d %f",
+                  &item.id, item.name,
+                  &item.quantity, &item.price) != EOF) {
+
+        if (item.id != id) {
+            fprintf(temp, "%d %s %d %.2f\n",
+                    item.id, item.name,
+                    item.quantity, item.price);
+        } else {
+            found = 1;
+        }
+    }
+
+    fclose(file);
+    fclose(temp);
+
+    remove("inventory.txt");
+    rename("temp.txt", "inventory.txt");
+
+    if (found)
+        printf("Item deleted successfully!\n");
+    else
+        printf("Item not found.\n");
+}
